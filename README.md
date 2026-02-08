@@ -8,7 +8,7 @@ directory.
 
 ## Installation
 
-**Dependencies: **
+**Dependencies:**
 
 - tmux
 - fzf
