@@ -24,8 +24,11 @@ Add the script to your PATH. Typically `/bin` is already in your PATH. Verify
 by running `echo $PATH`.
 
 ```
-mv script.sh /bin/tsm
+sudo mv script.sh /bin/
+sudo mv /bin/script.sh /bin/tsm
 chmod +x /bin/tsm
+cd ..
+rm -rf tmux-sessionizer
 ```
 
 ## Usage
@@ -39,6 +42,8 @@ will instead attach to the pre-existing session._**
 
 ## To-do
 
+- Implement graceful exit if the user decides to not choose a directory in the 
+fzf.
 - Add more robust session renaming when encountering sessions that have the 
 same name. Currently only renaming the new session without renaming the old 
 matched session.
