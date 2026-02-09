@@ -42,8 +42,6 @@ will instead attach to the pre-existing session._**
 
 ## To-do
 
-- Implement graceful exit if the user decides to not choose a directory in the 
-fzf.
 - Add more robust session renaming when encountering sessions that have the 
 same name. Currently only renaming the new session without renaming the old 
 matched session.
