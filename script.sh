@@ -9,6 +9,7 @@ dir_env_var="DIRECTORY"
 directory=$(find ~/ -type d | fzf)
 
 # Gracefully exit if we didn't choose a directory
+# -z is if length is zero.
 if [ -z "$directory" ]
 then
     exit
@@ -96,5 +97,16 @@ do
     fi
 done
 
-tmux new -s "$name" -e "$dir_env_var=$directory"
+# If we're already in a tmux session, detach from it and create a new session
+# without attaching to it.
+# -n checks if length of string is non-zero
+if [ -n "$TMUX" ]
+then
+    # Create a new session but don't attach to it yet
+    tmux new -s "$name" -e "$dir_env_var=$directory" -d
+    tmux switch-client -t "$name"
+else
+    tmux new -s "$name" -e "$dir_env_var=$directory"
+fi
+
 exit
