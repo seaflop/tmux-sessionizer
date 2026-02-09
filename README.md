@@ -48,5 +48,3 @@ matched session.
 - Speed up fzf by removing search for unnecessary directories.
 - Create a fzf menu specifically for session attach and deletion.
 - Add support for compatibility with tmux sessions not created with `tsm`.
-- Add support for `tsm` within a tmux session. Currently doing this will result 
-in an error.
