@@ -8,6 +8,12 @@ dir_env_var="DIRECTORY"
 
 directory=$(find ~/ -type d | fzf)
 
+# Gracefully exit if we didn't choose a directory
+if [ -z "$directory" ]
+then
+    exit
+fi
+
 cd "$directory"
 
 # Tokenize the directory at every instance of a '/'.
