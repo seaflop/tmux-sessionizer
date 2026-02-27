@@ -6,7 +6,7 @@ dir_env_var="DIRECTORY"
 # Create new tmux session with the name of the full directory.
 # If the session already exists, attach to it instead.
 
-directory=$(find ~/ -type d | fzf)
+directory=$(find ~/ -path '*/.*' -prune -o -type d | fzf)
 
 # Gracefully exit if we didn't choose a directory
 # -z is if length is zero.
@@ -41,18 +41,16 @@ do
     for session in $tmux_sessions
     do
         env=$(tmux show-environment -t "$session" "$dir_env_var")
-        # Check to see if the directory of the session in the loop matches
-        # the directory we want to create the session for. If it does
-        # match, then just attach to the already existing session and exit
-        # the script.
+        # Check to see if the directory of the session in the loop matches the 
+        # directory we want to create the session for. If it does match, then 
+        # just attach to the already existing session and exit the script.
         session_dir="${env#*"$dir_env_var="}"
         if [ "$session_dir" = "$directory" ]
         then
             tmux a -t "$session"
             exit
-            # If the session directory is not an exact match, we need to 
-            # search to see if the name variable matches the end of the 
-            # session name.
+            # If the session directory is not an exact match, we need to search 
+            # to see if the name variable matches the end of the session name.
             # If we had found a match for the name variable to the end of the 
             # session name, then we want to rename the existing directory by 
             # adding its parent directory to the name. Then we want to break 
@@ -98,8 +96,8 @@ do
 done
 
 # If we're already in a tmux session, detach from it and create a new session
-# without attaching to it.
-# -n checks if length of string is non-zero
+# without attaching to it. Then switch client to the newly created session.
+# -n checks if length of string is non-zero.
 if [ -n "$TMUX" ]
 then
     # Create a new session but don't attach to it yet

@@ -4,7 +4,8 @@
 
 An automated tmux session creator that uses a fuzzy finder to search for 
 directories from your root directory and launch a tmux session in the chosen 
-directory. 
+directory. After creating the session, you can control it using the regular 
+tmux commands.
 
 ## Installation
 
@@ -45,6 +46,9 @@ will instead attach to the pre-existing session._**
 - Add more robust session renaming when encountering sessions that have the 
 same name. Currently only renaming the new session without renaming the old 
 matched session.
-- Speed up fzf by removing search for unnecessary directories.
 - Create a fzf menu specifically for session attach and deletion.
 - Add support for compatibility with tmux sessions not created with `tsm`.
+- Add optional flags. Some necessary features that need to be added with the 
+flags include launching a tmux session in the current directory, specify a new 
+directory to fzf from instead of root, create a new session in a directory that 
+already has a session, and more.
