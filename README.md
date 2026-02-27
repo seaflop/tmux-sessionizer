@@ -9,7 +9,7 @@ tmux commands.
 
 ## Installation
 
-**Dependencies:**
+### Dependencies:
 
 - tmux
 - fzf
@@ -21,16 +21,7 @@ git clone https://github.com/seaflop/tmux-sessionizer
 cd tmux-sessionizer
 ```
 
-Add the script to your PATH. Typically `/bin` is already in your PATH. Verify 
-by running `echo $PATH`.
-
-```
-sudo mv script.sh /bin/
-sudo mv /bin/script.sh /bin/tsm
-chmod +x /bin/tsm
-cd ..
-rm -rf tmux-sessionizer
-```
+Add the script to your PATH. 
 
 ## Usage
 
