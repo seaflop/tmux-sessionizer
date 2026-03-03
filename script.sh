@@ -31,6 +31,7 @@ sessions_to_be_renamed=()
 
 dir_depth=0
 
+# Gotta improve this a lot. Currently we're at O(n^2) for this whole operation.
 while true
 do
 
@@ -47,8 +48,15 @@ do
         session_dir="${env#*"$dir_env_var="}"
         if [ "$session_dir" = "$directory" ]
         then
-            tmux a -t "$session"
-            exit
+            # If we're already in a tmux session, just switch clients
+            if [ -n "$TMUX" ]
+            then
+                tmux switch-client -t "$session"
+                exit
+            else
+                tmux a -t "$session"
+                exit
+            fi
             # If the session directory is not an exact match, we need to search 
             # to see if the name variable matches the end of the session name.
             # If we had found a match for the name variable to the end of the 
@@ -100,7 +108,6 @@ done
 # -n checks if length of string is non-zero.
 if [ -n "$TMUX" ]
 then
-    # Create a new session but don't attach to it yet
     tmux new -s "$name" -e "$dir_env_var=$directory" -d
     tmux switch-client -t "$name"
 else
