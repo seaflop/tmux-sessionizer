@@ -7,6 +7,7 @@ Usage: $0 [options]
 help
 new
 has
+here
 EOF
 exit 1
 }
@@ -149,6 +150,19 @@ then
             # Optional third argument to find only exact matches
             directory=$(find ~/ -name ".*" -prune -o -type d -path "*$3*" -print | fzf)
             new_session
+        fi
+    # "here" as second argument automatically creates/attaches to the current 
+    # directory.
+    elif [ "$2" == "here" ]
+    then
+        echo "yo"
+        # There should be no third argument.
+        if [ -z "$3" ]
+        then
+            directory=$(pwd)
+            new_session
+        else
+            usage
         fi
     else
         usage
