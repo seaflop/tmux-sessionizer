@@ -1,117 +1,142 @@
 #! /usr/bin/env bash
 
-# The environment variable for the session's directory name.
-dir_env_var="DIRECTORY"
+usage (){
+    cat <<-EOF
+Usage: $0 [options]
 
-# Create new tmux session with the name of the full directory.
-# If the session already exists, attach to it instead.
+help
+new
+EOF
+exit 1
+}
 
-directory=$(find ~/ -path '*/.*' -prune -o -type d | fzf)
+# Creates a new session.
+new_session(){
+    # Gracefully exit if we didn't choose a directory
+    # -z is if length is zero.
+    if [ -z "$directory" ]
+    then
+        exit
+    fi
 
-# Gracefully exit if we didn't choose a directory
-# -z is if length is zero.
-if [ -z "$directory" ]
-then
-    exit
-fi
+    cd "$directory"
 
-cd "$directory"
+    # Tokenize the directory at every instance of a '/'.
+    IFS='/' read -a dirs_list <<< "$directory"
+    # Gotta ignore the first directory as it will be blank due to the nature of
+    # directory structures. We start indexing from 1.
+    num_dirs=${#dirs_list[@]}
+        (( num_dirs-- ))
 
-# Tokenize the directory at every instance of a '/'.
-IFS='/' read -a dirs_list <<< "$directory"
-# Gotta ignore the first directory as it will be blank due to the nature of
-# directory structures. We start ndexing from 1.
-num_dirs=${#dirs_list[@]}
-(( num_dirs-- ))
+    name=${dirs_list[$num_dirs]}
+    (( num_dirs-- ))
 
-name=${dirs_list[$num_dirs]}
-(( num_dirs-- ))
+    sessions_to_be_renamed=()
 
-sessions_to_be_renamed=()
+    dir_depth=0
 
-dir_depth=0
-
-# Gotta improve this a lot. Currently we're at O(n^2) for this whole operation.
-while true
-do
-
-    tmux_sessions=$(tmux list-sessions -F "#{session_name}")
-    found_matched_session=0
-    found_duplicate=0
-
-    for session in $tmux_sessions
+    # Gotta improve this a lot. Currently we're at O(n^2) for this whole operation.
+    while true
     do
-        env=$(tmux show-environment -t "$session" "$dir_env_var")
-        # Check to see if the directory of the session in the loop matches the 
-        # directory we want to create the session for. If it does match, then 
-        # just attach to the already existing session and exit the script.
-        session_dir="${env#*"$dir_env_var="}"
-        if [ "$session_dir" = "$directory" ]
-        then
-            # If we're already in a tmux session, just switch clients
-            if [ -n "$TMUX" ]
+
+        tmux_sessions=$(tmux list-sessions -F "#{session_name}")
+        found_matched_session=0
+        found_duplicate=0
+
+        for session in $tmux_sessions
+        do
+            env=$(tmux show-environment -t "$session" "$dir_env_var")
+            # Check to see if the directory of the session in the loop matches the 
+            # directory we want to create the session for. If it does match, then 
+            # just attach to the already existing session and exit the script.
+            session_dir="${env#*"$dir_env_var="}"
+            if [ "$session_dir" = "$directory" ]
             then
-                tmux switch-client -t "$session"
-                exit
-            else
-                tmux a -t "$session"
-                exit
-            fi
-            # If the session directory is not an exact match, we need to search 
-            # to see if the name variable matches the end of the session name.
-            # If we had found a match for the name variable to the end of the 
-            # session name, then we want to rename the existing directory by 
-            # adding its parent directory to the name. Then we want to break 
-            # out of the loop to restart going through all the session names.
-        else
-            if [[ "$session" == *"$name" ]]
-            then
-                found_matched_session=1
-                # Mark this session as having to be renamed. We add the session
-                # name to a list and then after breaking out of the loop rename
-                # whatever sessions are in the list with the necessary amount
-                # of parent directories.
-                for i in "${sessions_to_be_renamed[@]}"
-                do
-                    if [ "$i" == "$session" ]
-                    then
-                        found_duplicate=1
-                        break
-                    fi
-                done
-                if [ $found_duplicate -eq 0 ]
+                # If we're already in a tmux session, just switch clients
+                if [ -n "$TMUX" ]
                 then
-                    sessions_to_be_renamed+=("$session")
+                    tmux switch-client -t "$session"
+                    exit
+                else
+                    tmux a -t "$session"
+                    exit
                 fi
+                # If the session directory is not an exact match, we need to search 
+                # to see if the name variable matches the end of the session name.
+                # If we had found a match for the name variable to the end of the 
+                # session name, then we want to rename the existing directory by 
+                # adding its parent directory to the name. Then we want to break 
+                # out of the loop to restart going through all the session names.
             else
-                continue
+                if [[ "$session" == *"$name" ]]
+                then
+                    found_matched_session=1
+                    # Mark this session as having to be renamed. We add the session
+                    # name to a list and then after breaking out of the loop rename
+                    # whatever sessions are in the list with the necessary amount
+                    # of parent directories.
+                    for i in "${sessions_to_be_renamed[@]}"
+                    do
+                        if [ "$i" == "$session" ]
+                        then
+                            found_duplicate=1
+                            break
+                        fi
+                    done
+                    if [ $found_duplicate -eq 0 ]
+                    then
+                        sessions_to_be_renamed+=("$session")
+                    fi
+                else
+                    continue
+                fi
             fi
+        done
+
+        # If we ran through the entire loop and found no matches for existing
+        # sessions, then we can just break out of the while loop and create a new
+        # session with name name. Otherwise, rename our new session by adding 
+        if [ $found_matched_session -eq 0 ]
+        then
+            break
+        else
+            # Rename the session we are making
+            name="${dirs_list[$num_dirs]}/$name"
+            (( num_dirs-- ))
+            (( dir_depth++ ))
         fi
     done
 
-    # If we ran through the entire loop and found no matches for existing
-    # sessions, then we can just break out of the while loop and create a new
-    # session with name name. Otherwise, rename our new session by adding 
-    if [ $found_matched_session -eq 0 ]
+    # If we're already in a tmux session, detach from it and create a new session
+    # without attaching to it. Then switch client to the newly created session.
+    # -n checks if length of string is non-zero.
+    if [ -n "$TMUX" ]
     then
-        break
+        tmux new -s "$name" -e "$dir_env_var=$directory" -d
+        tmux switch-client -t "$name"
     else
-        # Rename the session we are making
-        name="${dirs_list[$num_dirs]}/$name"
-        (( num_dirs-- ))
-        (( dir_depth++ ))
+        tmux new -s "$name" -e "$dir_env_var=$directory"
     fi
-done
+    exit
+}
 
-# If we're already in a tmux session, detach from it and create a new session
-# without attaching to it. Then switch client to the newly created session.
-# -n checks if length of string is non-zero.
-if [ -n "$TMUX" ]
+# The environment variable for the new session's directory name.
+dir_env_var="DIRECTORY"
+
+if [ "$1" == "help" ]
 then
-    tmux new -s "$name" -e "$dir_env_var=$directory" -d
-    tmux switch-client -t "$name"
+    usage
+# "new" is default arg; can be ommitted for default session creation behaviour.
+elif [[ "$1" == "new" || -z "$1" ]]
+then
+    # Blank second argument. Only needs to be checked in the case the first arg
+    # was provided.
+    if [ -z "$2" ]
+    then
+        directory=$(find ~/ -path '*/.*' -prune -o -type d | fzf)
+        new_session
+    fi
 else
-    tmux new -s "$name" -e "$dir_env_var=$directory"
+    usage
 fi
 
-exit
