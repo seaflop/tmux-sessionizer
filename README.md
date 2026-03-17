@@ -32,6 +32,10 @@ Add the script to your PATH.
 **_Note that searching for a directory that already has a session active in it 
 will instead attach to the pre-existing session._**
 
+## Note for MacOS Users
+
+Your terminal needs to be allowed full disk access in Settings. Navigate to Privacy and Security in System Settings and allow full disk access for your chosen terminal application.
+
 ## To-do
 
 - Add more robust session renaming when encountering sessions that have the 
