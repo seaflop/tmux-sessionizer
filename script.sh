@@ -1,4 +1,4 @@
-#! /usr/bin/bash
+#! /usr/bin/env bash
 
 # The environment variable for the session's directory name.
 dir_env_var="DIRECTORY"
