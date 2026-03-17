@@ -155,7 +155,6 @@ then
     # directory.
     elif [ "$2" == "here" ]
     then
-        echo "yo"
         # There should be no third argument.
         if [ -z "$3" ]
         then
