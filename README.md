@@ -44,6 +44,8 @@ matched session.
 - Create a fzf menu specifically for session attach and deletion.
 - Add support for compatibility with tmux sessions not created with `tsm`.
 - Add optional flags. Some necessary features that need to be added with the 
-flags include launching a tmux session in the current directory, specify a new 
-directory to fzf from instead of root, create a new session in a directory that 
-already has a session, and more.
+flags include:
+    - Launching a tmux session in the current directory. 
+    - Specify a new directory to fzf from instead of root.
+    - Force create a duplicate session in a directory that already has a session.
+    - Manual session name entry.
