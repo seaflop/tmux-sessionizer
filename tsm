@@ -6,6 +6,7 @@ Usage: $0 [options]
 
 help
 new
+has
 EOF
 exit 1
 }
@@ -133,8 +134,24 @@ then
     # was provided.
     if [ -z "$2" ]
     then
-        directory=$(find ~/ -path '*/.*' -prune -o -type d | fzf)
+        # The default directory search hides hidden folders.
+        directory=$(find ~/ -path "*/.*" -prune -o -type d -print | fzf)
         new_session
+    # "has" as second argument only searches directories that include a 
+    # substring provided by the third argument.
+    elif [ "$2" == "has" ]
+    then
+        # Third argument is required.
+        if [ -z "$3" ]
+        then
+            usage
+        else
+            # Optional third argument to find only exact matches
+            directory=$(find ~/ -name ".*" -prune -o -type d -path "*$3*" -print | fzf)
+            new_session
+        fi
+    else
+        usage
     fi
 else
     usage
